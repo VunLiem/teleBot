@@ -82,9 +82,9 @@ public class telegramBot implements Runnable {
     }
 
     public static void HTTPSendPhoto(String imageDirectory) throws IOException {
-        String url = "https://api.telegram.org/bot5364421343:AAEATRGZud2KIicgvWRxBW31OURN07erqb8/sendPhoto?";
+        String url = "https://api.telegram.org/bot'put your token api here'/sendPhoto?";
         String charset = "UTF-8";
-        String chat_id = "5176390876";
+        String chat_id = "Put your chat id here";
         String caption = "Select data from bccs.im";
         File imageFile = new File(imageDirectory);
         String boundary = Long.toHexString(System.currentTimeMillis()); // Just generate some unique random value.
