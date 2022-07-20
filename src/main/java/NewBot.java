@@ -31,9 +31,9 @@ public class NewBot {
         /* End of the fix*/
 
         try {
-            String url = "https://api.telegram.org/bot5364421343:AAEATRGZud2KIicgvWRxBW31OURN07erqb8/sendPhoto?";
+            String url = "https://api.telegram.org/bot'Put your token API here'/sendPhoto?";
             String charset = "UTF-8";
-            String chat_id = "5176390876";
+            String chat_id = "Put your chat ID here";
             String caption = "Sent photo to the bot";
             File imageFile = new File("E:\\Photo\\car.jpg");
            // File imageFile = new File("E:\\Photo\\");
