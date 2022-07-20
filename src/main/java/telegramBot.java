@@ -1,25 +1,23 @@
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
+import javafx.scene.chart.NumberAxis;
+import org.hibernate.*;
 import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.CategoryAxis;
-import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.labels.StandardCategoryItemLabelGenerator;
-import org.jfree.chart.labels.StandardCategoryToolTipGenerator;
+import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.plot.CategoryPlot;
-import org.jfree.chart.plot.CombinedDomainCategoryPlot;
-import org.jfree.chart.renderer.category.BarRenderer;
+import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.LineAndShapeRenderer;
-import org.jfree.data.category.CategoryDataset;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
 
 import javax.net.ssl.*;
 import javax.persistence.Query;
+
 import java.awt.*;
 import java.io.*;
 import java.math.BigDecimal;
@@ -35,11 +33,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class Main implements Runnable{
+public class telegramBot implements Runnable {
     private Thread t;
     private String threadName;
 
-    Main(String name) {
+    telegramBot(String name) {
         threadName = name;
         System.out.println("Creating thread: " + name);
     }
@@ -47,7 +45,7 @@ public class Main implements Runnable{
     public static void main(String[] args) {
         try {
             SSLCertificate();
-            Main r1 = new Main("Telegram bot");
+            telegramBot r1 = new telegramBot("Telegram bot");
             r1.start();
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -125,6 +123,7 @@ public class Main implements Runnable{
             // End of multipart/form-data.
             writer.append("--" + boundary + "--").append(CRLF).flush();
         }
+
         // Request is lazily fired whenever you need to obtain information about response.
         int responseCode = ((HttpURLConnection) connection).getResponseCode();
         System.out.println("================= HTTP ====================");
@@ -137,10 +136,13 @@ public class Main implements Runnable{
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy-HH.mm.ss");
             while (true) {
+             //   long start = System.nanoTime();
                 System.out.println("Thread: " + threadName + " on " + sdf.format(new Date()));
                 String fileName = ChartReport();
                 System.out.println(fileName);
-                HTTPSendPhoto(fileName.toString());
+                HTTPSendPhoto(fileName);
+              //  long elapsedTime = System.nanoTime() - start;
+              //  Thread.sleep(2 * 60 * 1000 - elapsedTime / 1000000); // 2 minutes
                 Thread.sleep(60000);
             }
         } catch (InterruptedException e) {
@@ -160,46 +162,38 @@ public class Main implements Runnable{
     }
 
     public String ChartReport() throws IOException {
+        //  JFreeChart barChart = ChartFactory.createBarChart(
+        JFreeChart lineChart = ChartFactory.createLineChart(
+                "Report of Sale trans",
+                "Sale date", "Value of tax",
+                createDataset(), PlotOrientation.VERTICAL,
+                true, true, false);
 
-        final CategoryDataset []dataset = createDataset();
-        final org.jfree.chart.axis.NumberAxis rangeAxis1 = new org.jfree.chart.axis.NumberAxis("Value of amount not tax");
-        rangeAxis1.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-        final LineAndShapeRenderer renderer1 = new LineAndShapeRenderer();
-        renderer1.setBaseToolTipGenerator(new StandardCategoryToolTipGenerator());
+        CategoryPlot plot = lineChart.getCategoryPlot();
+        LineAndShapeRenderer renderer = new LineAndShapeRenderer();
+        plot.setRenderer(renderer);
+        plot.setRangeGridlinesVisible(true);
+        plot.setRangeGridlinePaint(Color.BLACK);
+        plot.setDomainGridlinesVisible(true);
+        plot.setDomainGridlinePaint(Color.BLUE);
 
-        final CategoryPlot subplot1 = new CategoryPlot(dataset[0], null, rangeAxis1, renderer1);
-        subplot1.setDomainGridlinesVisible(true);
-
-        final NumberAxis rangeAxis2 = new NumberAxis("Value of amount tax");
-        rangeAxis2.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-        final BarRenderer renderer2 = new BarRenderer();
-        renderer2.setBaseToolTipGenerator(new StandardCategoryToolTipGenerator());
-
-        final CategoryPlot subplot2 = new CategoryPlot(dataset[1], null, rangeAxis2, renderer2);
-        subplot2.setDomainGridlinesVisible(true);
-
-        final CategoryAxis domainAxis = new CategoryAxis("Category");
-        final CombinedDomainCategoryPlot plot = new CombinedDomainCategoryPlot(domainAxis);
-        plot.add(subplot1, 1);
-        plot.add(subplot2, 1);
-
-        final JFreeChart result = new JFreeChart(
-                "Combined sale trans",
-                new Font("SansSerif", Font.BOLD, 12),
-                plot,
-                true
-        );
+//        LineAndShapeRenderer lineAndShapeRenderer = (LineAndShapeRenderer)plot.getRenderer();
+//        lineAndShapeRenderer.setBaseItemLabelsVisible(Boolean.TRUE);
+//
+//        lineAndShapeRenderer.setBaseItemLabelFont(new Font("Calibri", Font.BOLD, 8));
+//        lineAndShapeRenderer.setBaseItemLabelGenerator(new StandardCategoryItemLabelGenerator());
 
         SimpleDateFormat simpleFormatter = new SimpleDateFormat("dd-MM-yyyy-HH.mm.ss");
         String date = simpleFormatter.format(new Date());
         String fileName = "ChartReport_" + date + ".jpg";
         File ChartReport = new File(fileName);
-        ChartUtilities.saveChartAsJPEG(ChartReport, result, 1280, 920);
+        ChartUtilities.saveChartAsJPEG(ChartReport, lineChart, 1280, 920);
         System.out.println("Image name: " + ChartReport.getAbsolutePath());
         return ChartReport.getAbsolutePath();
 
     }
-    private DefaultCategoryDataset[] createDataset() {
+    private DefaultCategoryDataset createDataset() {
+
         StandardServiceRegistry ssr = new StandardServiceRegistryBuilder()
                 .configure("hibernate.cfg.xml")
                 .build();
@@ -208,52 +202,54 @@ public class Main implements Runnable{
         Session session = factory.openSession();
         Transaction transaction = session.beginTransaction();
 
-        java.util.List<Object[]> lstResult1 = new ArrayList<>();
-        java.util.List<Object[]> lstResult2 = new ArrayList<>();
-        DefaultCategoryDataset[] str = new DefaultCategoryDataset[2];
+        List<Object[]> lstResult1 = new ArrayList<>();
+        List<Object[]> lstResult2 = new ArrayList<>();
+
+
         try {
 
             Query query1 = session.createNativeQuery("SELECT SUM(AMOUNT_NOT_TAX), to_char(SALE_TRANS_DATE,'dd/mm') FROM BCCS_IM.SALE_TRANS WHERE SALE_TRANS_TYPE = '89' GROUP BY SALE_TRANS_DATE ORDER BY SALE_TRANS_DATE ASC");
-            lstResult1 = query1.getResultList();
 
             Query query2 = session.createNativeQuery("SELECT SUM(AMOUNT_TAX), to_char(SALE_TRANS_DATE,'dd/mm') FROM BCCS_IM.SALE_TRANS WHERE SALE_TRANS_TYPE = '89' GROUP BY SALE_TRANS_DATE ORDER BY SALE_TRANS_DATE ASC");
+
+            lstResult1 = query1.getResultList();
             lstResult2 = query2.getResultList();
 
-            DefaultCategoryDataset dataset1 = new DefaultCategoryDataset();
+
+            DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+          //  DefaultCategoryDataset dataset2 = new DefaultCategoryDataset();
             String series1 = "Amount not tax";
+            String series2 = "Amount tax";
 
             int count = 0;
-            for (Object[] data1 : lstResult1) {
+            for (Object[] tuple : lstResult1) {
                 System.out.println("===== Here is value of data 1 selected =====");
-                BigDecimal sum = (BigDecimal) data1[0];
+                BigDecimal sum = (BigDecimal) tuple[0];
                 double num1 = sum.doubleValue();
-                String date1 = (String) data1[1];
+                String date1 = (String) tuple[1];
                 System.out.println("Sum : " + sum + " Date: " + date1);
-                dataset1.addValue(num1, series1, date1);
+                dataset.addValue(num1, series1, date1);
 
                 count++;
                 if (count == 14) break;
 
             }
 
-            DefaultCategoryDataset dataset2 = new DefaultCategoryDataset();
-            String series2 = "Amount tax";
             count = 0;
-            for (Object[] data2 : lstResult2) {
+            for (Object[] data : lstResult2) {
                 System.out.println("==== Here is value data 2 selected ====");
-                BigDecimal sum2 = (BigDecimal) data2[0];
+                BigDecimal sum2 = (BigDecimal) data[0];
                 double num2 = sum2.doubleValue();
-                String date2 = (String) data2[1];
+                String date2 = (String) data[1];
                 System.out.println("Sum : " + sum2 + " Date: " + date2);
-                dataset2.addValue(num2, series2, date2);
+                dataset.addValue(num2, series2, date2);
 
                 count++;
                 if (count == 14) break;
-            }
-            str[0] = dataset1;
-            str[1] = dataset2;
 
-            return str;
+               // return dataset;
+            }
+            return dataset;
 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -265,53 +261,4 @@ public class Main implements Runnable{
         }
         return null;
     }
-//    private DefaultCategoryDataset createDataset2() {
-//
-//        StandardServiceRegistry ssr = new StandardServiceRegistryBuilder()
-//                .configure("hibernate.cfg.xml")
-//                .build();
-//        Metadata meta = new MetadataSources(ssr).getMetadataBuilder().build();
-//        SessionFactory factory = meta.getSessionFactoryBuilder().build();
-//        Session session = factory.openSession();
-//        Transaction transaction = session.beginTransaction();
-//
-//
-//        List<Object[]> lstResult2 = new ArrayList<>();
-//
-//
-//        try {
-//
-//            Query query2 = session.createNativeQuery("SELECT SUM(AMOUNT_TAX), to_char(SALE_TRANS_DATE,'dd/mm') FROM BCCS_IM.SALE_TRANS WHERE SALE_TRANS_TYPE = '89' GROUP BY SALE_TRANS_DATE ORDER BY SALE_TRANS_DATE ASC");
-//
-//
-//            lstResult2 = query2.getResultList();
-//
-//            DefaultCategoryDataset dataset2 = new DefaultCategoryDataset();
-//            String series2 = "Amount tax";
-//            int count = 0;
-//            for (Object[] data : lstResult2) {
-//            System.out.println("==== Here is value data 2 selected ====");
-//            BigDecimal sum2 = (BigDecimal) data[0];
-//            double num2 = sum2.doubleValue();
-//            String date2 = (String) data[1];
-//            System.out.println("Sum : " + sum2 + " Date: " + date2);
-//            dataset2.addValue(num2, series2, date2);
-//
-//            count++;
-//            if (count == 14) break;
-//
-//
-//    }
-//            return dataset2;
-//        } catch (Exception ex) {
-//            ex.printStackTrace();
-//            if (transaction.isActive()) {
-//                transaction.rollback();
-//            }
-//            session.close();
-//            factory.close();
-//        }
-//        return null;
-//    }
-
 }

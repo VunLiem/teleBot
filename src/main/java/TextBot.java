@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class TeleBot extends TelegramLongPollingBot {
+public class TextBot extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
         if (update.hasMessage() && !update.getMessage().getText().isEmpty()) {
@@ -36,33 +36,35 @@ public class TeleBot extends TelegramLongPollingBot {
                     || command.equals("/report")) {
 
                 SendMessage sendMessage = new SendMessage();
-                sendMessage.setText("Click the button below");
+                sendMessage.setText("Click the button below to choose our services!");
                 sendMessage.setChatId(chat_id);
                 sendMessage.setParseMode(ParseMode.MARKDOWN);
 
                 InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-                List<List<InlineKeyboardButton>> inlineButtons = new ArrayList<>();
-                List<InlineKeyboardButton> inlineKeyboardButtonList = new ArrayList<>();
 
-                InlineKeyboardButton inlineKeyboardButton1 = new InlineKeyboardButton();
-                InlineKeyboardButton inlineKeyboardButton2 = new InlineKeyboardButton();
-                List<InlineKeyboardButton> button3 = new ArrayList<>();
-                InlineKeyboardButton button = new InlineKeyboardButton();
+                List<List<InlineKeyboardButton>> listInlineButton = new ArrayList<>();
+                List<InlineKeyboardButton> Button1 = new ArrayList<>();
+                List<InlineKeyboardButton> Button2 = new ArrayList<>();
+                List<InlineKeyboardButton> Button3 = new ArrayList<>();
+                InlineKeyboardButton M1 = new InlineKeyboardButton();
+                InlineKeyboardButton M2 = new InlineKeyboardButton();
+                InlineKeyboardButton M3 = new InlineKeyboardButton();
 
-                inlineKeyboardButton1.setText("Amount not tax report");
-                inlineKeyboardButton2.setText("Amount tax report");
-                button.setText("Metfone Internet Plans");
+                M1.setText("Amount not tax report");
+                M2.setText("Amount tax report");
+                M3.setText("Metfone Internet Plans");
 
-                inlineKeyboardButton1.setCallbackData("button1");
-                inlineKeyboardButton2.setCallbackData("button2");
-                button.setCallbackData("button3");
-                inlineKeyboardButtonList.add(inlineKeyboardButton1);
-                inlineKeyboardButtonList.add(inlineKeyboardButton2);
-                button3.add(button);
-                inlineButtons.add(button3);
-                inlineButtons.add(inlineKeyboardButtonList);
+                M1.setCallbackData("button1");
+                M2.setCallbackData("button2");
+                M3.setCallbackData("button3");
+                Button1.add(M1);
+                Button2.add(M2);
+                Button3.add(M3);
+                listInlineButton.add(Button1);
+                listInlineButton.add(Button2);
+                listInlineButton.add(Button3);
 
-                inlineKeyboardMarkup.setKeyboard(inlineButtons);
+                inlineKeyboardMarkup.setKeyboard(listInlineButton);
                 sendMessage.setReplyMarkup(inlineKeyboardMarkup);
 
                 try {
@@ -201,7 +203,7 @@ public class TeleBot extends TelegramLongPollingBot {
             else if (data.equals("button3")) {
                 sendChatAction.setChatId(chat_id);
                 SendMessage sendMessage = new SendMessage();
-                sendMessage.setText("Metfone MIU plan");
+                sendMessage.setText("Generating Metfone MIU plan");
                 sendMessage.setChatId(chat_id);
                 try {
                     sendChatAction.setAction(ActionType.TYPING);
@@ -215,7 +217,7 @@ public class TeleBot extends TelegramLongPollingBot {
 
                 File imageFile = new File("E:\\Photo\\Metfone MIU plan.png");
 
-               // smg.setCaption("Here is the photo from local file");
+                smg.setCaption("Here is metfone MIU plan");
                 smg.setPhoto(new InputFile(imageFile));
 
                 try {
@@ -297,3 +299,4 @@ public class TeleBot extends TelegramLongPollingBot {
         return TelebotConfig.BOT_TOKEN;
     }
 }
+
