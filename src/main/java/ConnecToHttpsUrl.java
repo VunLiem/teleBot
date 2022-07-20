@@ -32,8 +32,8 @@ public class ConnecToHttpsUrl {
         HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
         /* End of the fix*/
         String urlString = "https://api.telegram.org/bot%s/sendMessage?chat_id=%s&text=%s";
-        String apiToken = "5364421343:AAEATRGZud2KIicgvWRxBW31OURN07erqb8";
-        String chatId = "5176390876";
+        String apiToken = "Put your token here";
+        String chatId = "Put your chat ID here";
         String text = "I got your message";
 
         urlString = String.format(urlString, apiToken, chatId, text);
